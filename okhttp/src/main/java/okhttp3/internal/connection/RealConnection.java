@@ -29,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
@@ -70,9 +71,13 @@ import okio.Source;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static java.net.HttpURLConnection.HTTP_PROXY_AUTH;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.logging.Level.FINE;
 import static okhttp3.internal.Util.closeQuietly;
+import static okhttp3.internal.Util.format;
 
 public final class RealConnection extends Http2Connection.Listener implements Connection {
+  static final Logger logger = Logger.getLogger(RealConnection.class.getName());
+
   private static final String NPE_THROW_WITH_NULL = "throw with null exception";
   private static final int MAX_TUNNEL_ATTEMPTS = 21;
 
@@ -563,7 +568,9 @@ public final class RealConnection extends Http2Connection.Listener implements Co
   /** When settings are received, adjust the allocation limit. */
   @Override public void onSettings(Http2Connection connection) {
     synchronized (connectionPool) {
+      if (logger.isLoggable(FINE)) logger.fine(format("Original Stream Limit %s", allocationLimit));
       allocationLimit = connection.maxConcurrentStreams();
+      if (logger.isLoggable(FINE)) logger.fine(format("New Stream Limit %s", allocationLimit));
     }
   }
 

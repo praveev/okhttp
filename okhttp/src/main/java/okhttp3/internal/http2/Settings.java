@@ -124,4 +124,13 @@ public final class Settings {
       set(i, other.get(i));
     }
   }
+
+  @Override
+  public String toString()
+  {
+    return "Settings{" +
+           "set=" + set +
+           ", values=" + Arrays.toString(values) +
+           '}';
+  }
 }

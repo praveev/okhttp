@@ -33,6 +33,9 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import okhttp3.Protocol;
 import okhttp3.internal.NamedRunnable;
 import okhttp3.internal.Util;
@@ -44,6 +47,8 @@ import okio.ByteString;
 import okio.Okio;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.logging.Level.FINE;
+import static okhttp3.internal.Util.format;
 import static okhttp3.internal.http2.ErrorCode.REFUSED_STREAM;
 import static okhttp3.internal.http2.Settings.DEFAULT_INITIAL_WINDOW_SIZE;
 import static okhttp3.internal.platform.Platform.INFO;
@@ -58,6 +63,7 @@ import static okhttp3.internal.platform.Platform.INFO;
  * that caller.
  */
 public final class Http2Connection implements Closeable {
+  static final Logger logger = Logger.getLogger(Http2.class.getName());
 
   // Internal state of this connection is guarded by 'this'. No blocking
   // operations may be performed while holding this lock!
@@ -690,6 +696,7 @@ public final class Http2Connection implements Closeable {
     }
 
     @Override public void settings(boolean clearPrevious, Settings newSettings) {
+      if (logger.isLoggable(FINE)) logger.fine(format("New Incoming Settings %s", newSettings.toString()));
       long delta = 0;
       Http2Stream[] streamsToNotify = null;
       synchronized (Http2Connection.this) {
@@ -697,6 +704,7 @@ public final class Http2Connection implements Closeable {
         if (clearPrevious) peerSettings.clear();
         peerSettings.merge(newSettings);
         applyAndAckSettings(newSettings);
+        if (logger.isLoggable(FINE)) logger.fine(format("Settings After Merging %s", peerSettings.toString()));
         int peerInitialWindowSize = peerSettings.getInitialWindowSize();
         if (peerInitialWindowSize != -1 && peerInitialWindowSize != priorWriteWindowSize) {
           delta = peerInitialWindowSize - priorWriteWindowSize;
